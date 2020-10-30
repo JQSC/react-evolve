@@ -1,5 +1,5 @@
 import reconcileChildren from './ReactFiberReconcile'
-
+import { renderWithHooks } from './ReactFiberHooks'
 
 function updateDom(dom, prevProps, nextProps) {
     const isNew = (prev, next) => key =>
@@ -38,7 +38,6 @@ function updateDom(dom, prevProps, nextProps) {
                 .toLowerCase()
                 .substring(2)
 
-            console.log('eventType', eventType, nextProps[name])
             dom.addEventListener(
                 eventType,
                 nextProps[name]
@@ -76,7 +75,7 @@ function createDom(fiber) {
 }
 
 
- //存在待更新节点并且render没有被打断
+//存在待更新节点并且render没有被打断
 function beginWork(rootFiber) {
     let nextUnitOfWork = rootFiber;
     while (nextUnitOfWork) {
@@ -113,15 +112,10 @@ function performUnitOfWork(fiber) {
 }
 
 
-function updateFunctionComponent(fiber) {
-    //当前hook所处组件
-    // hookIndex = 0
-    // wipFiber = fiber
+function updateFunctionComponent(currentFiber) {
     // //同一个组件中多次调用hook
-    // wipFiber.hooks = []
-
-    const children = [fiber.type(fiber.props)]
-    reconcileChildren(fiber, children)
+    const nextChildren = renderWithHooks(currentFiber);
+    reconcileChildren(currentFiber, nextChildren)
 }
 
 function updateHostComponent(fiber) {

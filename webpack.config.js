@@ -15,8 +15,8 @@ module.exports = {
       react: path.resolve(packagesPath, 'react'),
       reactDOM: path.resolve(packagesPath, 'react-dom'),
       reactReconciler: path.resolve(packagesPath, 'react-reconciler'),
-    //   scheduler: path.resolve(packagesPath, 'scheduler'),
-    //   shared: path.resolve(packagesPath, 'shared')
+      scheduler: path.resolve(packagesPath, 'scheduler'),
+      shared: path.resolve(packagesPath, 'shared')
     }
   },
   module: {

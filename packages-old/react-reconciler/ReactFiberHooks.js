@@ -74,6 +74,16 @@ function pushEffect(tag, create, destroy, deps) {
 // 获取当前hook的状态信息
 // 根据queue里存储的update更新hook的状态信息
 function updateReducer(reducer, initialArg) {
+     // const hook = {
+    //     // mount时的初始化state
+    //     memoizedState: null,
+    //     // mount时的初始化state
+    //     baseState: null,
+    //     baseQueue: null,
+    //     queue: null,
+    //     // 指向同一个FunctionComponent中下一个hook，构成链表
+    //     next: null
+    //   };
   const hook = updateWorkInProgressHook();
   const queue = hook.queue;
   queue.lastRenderedReducer = reducer;
@@ -198,6 +208,7 @@ function updateWorkInProgressHook() {
 // 该函数useState返回的第二个参数，用于将update插入更新队列
 // 第三个参数之所以叫action，是借鉴了redux中的概念
 // 事实上useState就是useReducer的特殊情况
+// const dispatch = queue.dispatch = dispatchAction.bind(null, currentlyRenderingFiber, queue);
 function dispatchAction(fiber, queue, action) {
   const currentTime = requestCurrentTimeForUpdate();
   var expirationTime = computeExpirationForFiber(currentTime, fiber);
@@ -347,8 +358,18 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
 
 const HooksDispatcherOnMount = {
   useState(initialState) {
+    // const hook = {
+    //     // mount时的初始化state
+    //     memoizedState: null,
+    //     // mount时的初始化state
+    //     baseState: null,
+    //     baseQueue: null,
+    //     queue: null,
+    //     // 指向同一个FunctionComponent中下一个hook，构成链表
+    //     next: null
+    //   };
+
     // 这部分代码在React中对应于mountState函数
-    
     // 生成新hook并插入WorkInProgress memoizedState最后
     // 同一个FunctionComponent内多个useState就会多次调用，生成 hook list
     const hook = mountWorkInProgressHook();

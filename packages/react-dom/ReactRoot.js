@@ -1,6 +1,7 @@
 import * as DOMRenderer from 'reactReconciler';
 
 function ReactRoot(element, container) {
+    //this.current= new
     this.dom = container
     this.props = {
         children: [element]
