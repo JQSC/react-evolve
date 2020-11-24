@@ -1,5 +1,4 @@
-import workLoop from './ReactFiberWorkLoop';
-
+import scheduleUpdateOnFiber from './ReactFiberWorkLoop';
 export {
-    workLoop
+    scheduleUpdateOnFiber
 }
