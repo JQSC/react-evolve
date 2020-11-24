@@ -12,7 +12,7 @@ function App(props) {
 
     return (
         <div style="background: salmon">
-            <h1>Hello World {state}</h1>
+            <h1>Hello World{state}</h1>
             {/* {show ? <p>111</p> : null} */}
             <button onClick={() => setShow((a) => !a)}>show {show}</button>
             <button onClick={() => setState(c => c + 1)}>累加: {state}  </button>

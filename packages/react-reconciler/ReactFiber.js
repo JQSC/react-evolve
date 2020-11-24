@@ -6,7 +6,17 @@ export function FiberNode(tag, pendingProps, key) {
     // 5 HostComponent
     this.tag = tag;
     // prop key
-    this.key = key;
+    // this.key = key;
+    // type字段由React.createElement注入
+    // 对于FunctionComponent，指向 fn
+    // 对于ClassComponent，指向 class
+    // 对于HostComponent，为对应DOM节点的字符串
+    this.type = null;
+    // 与type同步
+    this.elementType = null;
+
+    this.ref = null;
+
     // 指向父Fiber
     this.return = null;
     // 指向子Fiber

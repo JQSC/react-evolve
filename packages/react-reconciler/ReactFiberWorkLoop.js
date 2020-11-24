@@ -60,9 +60,7 @@ function workLoopSync() {
 
 
 function performSyncWorkOnRoot(root) {
-
-   
-
+    
     //创建当前元素的 alternate fiber
     
     workInProgress = createWorkInProgress(root.current, null);

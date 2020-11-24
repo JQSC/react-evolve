@@ -1,5 +1,7 @@
 import * as DOMRenderer from 'reactReconciler';
+import performSyncWorkOnRoot from 'reactReconciler/ReactFiberWorkLoop'
 import ReactSharedInternals from 'shared/ReactSharedInternals';
+import { FiberNode } from 'reactReconciler/ReactFiber';
 
 const { ReactCurrentDispatcher } = ReactSharedInternals;
 
@@ -120,12 +122,13 @@ const HooksDispatcherOnMount = {
 
 export function renderWithHooks(workInProgress) {
     
+    const current=workInProgress.alternate
+
     currentlyRenderingFiber = workInProgress;
 
     currentlyRenderingFiber.memoizedState = null;
     workInProgress.updateQueue = null;
 
-    const current = workInProgress.alternate;
     ReactCurrentDispatcher.current = current && current.memoizedState ? HooksDispatcherOnUpdate : HooksDispatcherOnMount;
 
     const children = workInProgress.type(workInProgress.props);
@@ -134,6 +137,5 @@ export function renderWithHooks(workInProgress) {
     //此时重置他代表这个fiber已经处理完了，所以这些全局变量不能再指向该fiber内部
     currentlyRenderingFiber = null
     workInProgressHook = null;
-
     return children;
 }
