@@ -1,8 +1,19 @@
 
 import { renderWithHooks } from './ReactFiberHooks'
 import { HostRoot, IndeterminateComponent, HostComponent, HostText } from 'shared/ReactWorkTags';
-import { reconcileChildren } from './ReactChildFiber'
+import { reconcileChildFibers, mountChildFibers } from './ReactChildFiber'
 import { processUpdateQueue } from './ReactUpdateQueue'
+
+
+function reconcileChildren(current, workInProgress, nextChildren) {
+    // 首次渲染时只有root节点存在current，所以只有root会进入reconcile产生effectTag
+    // 其他节点会appendAllChildren形成DOM树
+    if (current) {
+        workInProgress.child = reconcileChildFibers(workInProgress, current.child, nextChildren);
+    } else {
+        workInProgress.child = mountChildFibers(workInProgress, null, nextChildren);
+    }
+}
 
 // 生成child fiber
 function updateHostRoot(current, workInProgress) {
@@ -10,16 +21,16 @@ function updateHostRoot(current, workInProgress) {
     processUpdateQueue(workInProgress, null, null);
     const nextState = workInProgress.memoizedState;
     const nextChildren = nextState.element;
-   
-    workInProgress.child = reconcileChildren(current, workInProgress, nextChildren);
+
+    reconcileChildren(current, workInProgress, nextChildren);
     return workInProgress.child
 }
 
 function updateFunctionComponent(current, workInProgress, Component) {
     // //同一个组件中多次调用hook
     const nextChildren = renderWithHooks(workInProgress, Component);
-   
-    workInProgress.child = reconcileChildren(current, workInProgress, nextChildren);
+
+    reconcileChildren(current, workInProgress, nextChildren);
 
     return workInProgress.child
 
@@ -27,7 +38,7 @@ function updateFunctionComponent(current, workInProgress, Component) {
 
 function updateHostComponent(current, workInProgress) {
     //debugger
-    workInProgress.child = reconcileChildren(current, workInProgress, workInProgress.pendingProps.children);
+    reconcileChildren(current, workInProgress, workInProgress.pendingProps.children);
     return workInProgress.child
 }
 
