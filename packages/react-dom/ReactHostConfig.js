@@ -46,6 +46,7 @@ export function createTextInstance(text) {
 }
 
 export function removeChild(parentInstance, child) {
+    
     parentInstance.removeChild(child);
 }
 

@@ -1,5 +1,5 @@
 import createElement from './ReactElement'
-import { useState } from './ReactHooks'
+import { useState, useEffect } from './ReactHooks'
 import ReactCurrentDispatcher from './ReactCurrentDispatcher'
 
 const React = {
@@ -7,7 +7,8 @@ const React = {
     internals: {
         ReactCurrentDispatcher
     },
-    useState
+    useState,
+    useEffect
 }
 
 export default React

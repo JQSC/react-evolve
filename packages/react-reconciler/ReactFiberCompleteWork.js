@@ -1,5 +1,20 @@
 import { HostRoot, IndeterminateComponent, HostComponent, HostText } from 'shared/ReactWorkTags';
+import {
+    Update
+} from 'shared/ReactSideEffectTags';
+import {
+    appendInitialChild,
+    createInstance,
+    createTextInstance,
+    // finalizeInitialChildren,
+    diffProperties
+} from 'reactDOM/ReactHostConfig';
 
+// Tag the fiber with an update effect. This turns a Placement into
+// a PlacementAndUpdate.
+function markUpdate(workInProgress) {
+    workInProgress.effectTag |= Update;
+}
 
 function finalizeInitialChildren(dom, prevProps, nextProps) {
     const isNew = (prev, next) => key =>
@@ -43,23 +58,6 @@ function finalizeInitialChildren(dom, prevProps, nextProps) {
 
 }
 
-
-
-// 创建DOM节点
-// TODO 根据 根节点的namespace创建DOM节点，不一定 创建在当前document里
-function createElement(type, props) {
-    let domElement;
-    if (type === 'script') {
-        // 通过innerHTML的方式生成的script标签内部脚本不会执行
-        const div = document.createElement('div');
-        div.innerHTML = '<script></script>';
-        domElement = div.removeChild(div.firstChild);
-    } else {
-        domElement = document.createElement(type);
-    }
-    return domElement;
-}
-
 function appendAllChildren(parent, workInProgress) {
     let node = workInProgress.child;
     //将所有children加入到parent中
@@ -90,9 +88,19 @@ function updateHostComponent(current, workInProgress, type, newProps) {
         return;
     }
 
+    const instance = workInProgress.stateNode;
+    // HostComponent单一文本节点会在这里加入updateQueue
+    const updatePayload = diffProperties(instance, type, oldProps, newProps);
+    // updateQueue的处理会在commitWork中进行
+    workInProgress.updateQueue = updatePayload;
 
-    //  finalizeInitialChildren(instance, {}, newProps);
+    if (updatePayload) {
+        markUpdate(workInProgress);
+    }
 }
+
+
+
 
 export function completeWork(current, workInProgress) {
     const type = workInProgress.type;
@@ -101,17 +109,16 @@ export function completeWork(current, workInProgress) {
     switch (workInProgress.tag) {
         case HostComponent:
 
-            // if (current && workInProgress.stateNode) {
-            //     // 非首次渲染，已经存在对应current 和 stateNode
-            //     updateHostComponent(current, workInProgress, type, newProps);
-            //     return null;
-            // }
+            if (current && workInProgress.stateNode) {
+                // 非首次渲染，已经存在对应current 和 stateNode 更新属性
+                updateHostComponent(current, workInProgress, type, newProps);
+                return null;
+            }
 
             // 创建对应DOM节点
-            let instance = createElement(type, newProps);
+            let instance = createInstance(type, newProps);
             // 初始化props
             finalizeInitialChildren(instance, {}, newProps);
-
 
             //因为是从内向外递归 所以到父节点的时候,子节点已经生成，此时把子节点append到父节点中
             appendAllChildren(instance, workInProgress)
@@ -119,7 +126,16 @@ export function completeWork(current, workInProgress) {
             workInProgress.stateNode = instance;
             break
         case HostText:
-            workInProgress.stateNode = document.createTextNode(newProps);
+            const newText = newProps;
+            if (current && workInProgress.stateNode != null) {
+                const oldText = current && current.pendingProps
+                if (oldText !== newText) {
+                    markUpdate(workInProgress);
+                    //workInProgress.stateNode = createTextInstance(newText);
+                }
+            } else {
+                workInProgress.stateNode = createTextInstance(newText);
+            }
             break
         default:
             break;

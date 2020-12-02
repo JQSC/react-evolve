@@ -1,7 +1,7 @@
 
 import { renderWithHooks } from './ReactFiberHooks'
 import { HostRoot, IndeterminateComponent, HostComponent, HostText } from 'shared/ReactWorkTags';
-import { reconcileChildFibers, mountChildFibers } from './ReactChildFiber'
+import { reconcileChildFibers, mountChildFibers, cloneChildFibers } from './ReactChildFiber'
 import { processUpdateQueue } from './ReactUpdateQueue'
 
 
@@ -19,9 +19,16 @@ function reconcileChildren(current, workInProgress, nextChildren) {
 function updateHostRoot(current, workInProgress) {
     // 根据update链表更新state的操作只在HostRoot 和 class组件相关处理中有
     processUpdateQueue(workInProgress, null, null);
+    const prevState = current.memoizedState;
+    const prevChildren = prevState ? prevState.element : null;
     const nextState = workInProgress.memoizedState;
     const nextChildren = nextState.element;
+    if (prevChildren === nextChildren) {
+        // 当前root state未变化，走优化路径，不需要协调子节点
+        cloneChildFibers(current, workInProgress);
 
+        return workInProgress.child;
+    }
     reconcileChildren(current, workInProgress, nextChildren);
     return workInProgress.child
 }
@@ -37,8 +44,14 @@ function updateFunctionComponent(current, workInProgress, Component) {
 }
 
 function updateHostComponent(current, workInProgress) {
+    // DOM节点名
+    const type = workInProgress.type;
+    const prevProps = current ? current.memoizedProps : null;
+    const nextProps = workInProgress.pendingProps;
+    let nextChildren = nextProps.children;
+
     //debugger
-    reconcileChildren(current, workInProgress, workInProgress.pendingProps.children);
+    reconcileChildren(current, workInProgress, nextChildren);
     return workInProgress.child
 }
 

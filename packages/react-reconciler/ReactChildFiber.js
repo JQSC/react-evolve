@@ -2,7 +2,8 @@ import { createWorkInProgress, createFiberFromElement, createFiberFromText } fro
 import { HostRoot, IndeterminateComponent, HostComponent, HostText } from 'shared/ReactWorkTags';
 import {
     Placement,
-    Deletion
+    Deletion,
+    Update
 } from 'shared/ReactSideEffectTags';
 
 // 对于协调单一节点过程中，创建的workInProgress需要去掉他的sibling指向
@@ -16,7 +17,8 @@ function useFiber(fiber, pendingProps) {
 
 
 export function cloneChildFibers(current, workInProgress) {
-
+    const currentChild = workInProgress.child;
+    if (!currentChild) return;
     let newChild = createWorkInProgress(currentChild, currentChild.pendingProps);
     workInProgress.child = newChild;
     newChild.return = workInProgress;
@@ -97,18 +99,28 @@ function ChildReconciler(shouldTrackSideEffects) {
         return created;
     }
 
-    function reconcileSingleTextNode(returnFiber, currentFirstChild, newChild) {
-        const created = createFiberFromText(newChild);
+    function reconcileSingleTextNode(returnFiber, currentFirstChild, textContent) {
+        //复用节点
+        if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
+            deleteRemainingChildren(returnFiber, currentFirstChild.sibling);
+            const existing = useFiber(currentFirstChild, textContent);
+            existing.return = returnFiber;
+            return existing;
+        }
+        //无法复用 删除所有旧节点创建新节点
+        deleteRemainingChildren(returnFiber, currentFirstChild);
+        const created = createFiberFromText(textContent);
         created.return = returnFiber;
         return created;
     }
 
     // 标志当前fiber需要在commit阶段插入DOM
+    // 复用的节点有alternate ，新创建的无alternate
     function placeSingleChild(fiber) {
-        // alternate存在表示该fiber已经插入到DOM
-        // if (shouldTrackSideEffects && !fiber.alternate) {
-        //     fiber.effectTag = Placement;
-        // }
+        // 新创建的fiber需要标记Placement ，但mount render的节点只标记跟节点，子节点不处理
+        if (shouldTrackSideEffects && !fiber.alternate) {
+            fiber.effectTag = Placement;
+        }
         //mount 阶段不设置effectTag
         return fiber;
     }
@@ -226,17 +238,17 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     // 通过map中保存的oldFiber和newChild比较，判断是否更新oldFiber或创建新节点
-    function updateFromMap(existingChildren, returnFiber, newIdx, newChild, expirationTime) {
+    function updateFromMap(existingChildren, returnFiber, newIdx, newChild) {
         if (typeof newChild === 'string' || typeof newChild === 'number') {
             // 文本节点没有key，只需要比较他们是否都是文本节点
             const matchedFiber = existingChildren.get(newIdx) || null;
-            return updateTextNode(returnFiber, matchedFiber, '' + newChild, expirationTime);
+            return updateTextNode(returnFiber, matchedFiber, '' + newChild);
         }
 
         if (typeof newChild === 'object' && newChild !== null) {
             if (newChild.$$typeof === REACT_ELEMENT_TYPE) {
                 const matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null;
-                return updateElement(returnFiber, matchedFiber, newChild, expirationTime);
+                return updateElement(returnFiber, matchedFiber, newChild);
             }
         }
 
@@ -244,6 +256,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
     //为每个子项创建fiber diff算法
     function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren) {
+        
         // 可复用节点的位置可能和上次不同（需要标记Placement代表移动） ex： abcd => badc
         // 所以判断完是否可复用后还需要比较index，具体逻辑见 placeChild
         let lastPlacedIndex = 0;
@@ -371,12 +384,11 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     function reconcileChildFibers(returnFiber, current, newChild) {
-
+        // debugger
         const currentFirstChild = current;
 
         const isObject = typeof newChild === 'object' && newChild !== null;
-
-        //console.log('newChild',newChild)
+        
 
         if (Array.isArray(newChild)) {
 
@@ -402,6 +414,9 @@ function ChildReconciler(shouldTrackSideEffects) {
                 newChild
             ))
         }
+        
+        // 兜底删除
+        return deleteRemainingChildren(returnFiber, currentFirstChild);
     }
 
     return reconcileChildFibers;

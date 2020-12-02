@@ -1,4 +1,5 @@
-import { IndeterminateComponent,HostText,HostComponent } from 'shared/ReactWorkTags';
+import { IndeterminateComponent, HostText, HostComponent } from 'shared/ReactWorkTags';
+import {NoEffect} from 'shared/ReactSideEffectTags';
 
 export function FiberNode(tag, pendingProps, key) {
     // 1 ClassComponent
@@ -6,7 +7,7 @@ export function FiberNode(tag, pendingProps, key) {
     // 5 HostComponent
     this.tag = tag;
     // prop key
-    // this.key = key;
+    this.key = key;
     // type字段由React.createElement注入
     // 对于FunctionComponent，指向 fn
     // 对于ClassComponent，指向 class
@@ -23,7 +24,7 @@ export function FiberNode(tag, pendingProps, key) {
     this.child = null;
     // 指向兄弟Fiber
     this.sibling = null;
-
+    this.effectTag = NoEffect;
     // 对于FunctionComponent，指向 构造函数实例
     // 对于ClassComponent，指向 实例
     // 对于HostComponent，为对应DOM节点
@@ -51,8 +52,14 @@ export function createWorkInProgress(current, pendingProps) {
         workInProgress.elementType = current.elementType;
         current.alternate = workInProgress;
         workInProgress.alternate = current;
-    }else{
+    } else {
         workInProgress.pendingProps = pendingProps;
+
+        // 已有alternate的情况重置effect
+        workInProgress.effectTag = 0;
+        workInProgress.firstEffect = null;
+        workInProgress.lastEffect = null;
+        workInProgress.nextEffect = null;
     }
 
     workInProgress.child = current.child;
@@ -61,6 +68,7 @@ export function createWorkInProgress(current, pendingProps) {
     workInProgress.memoizedState = current.memoizedState;
     // 父级协调的过程中会被覆写
     workInProgress.sibling = current.sibling;
+    workInProgress.index = current.index;
 
     return workInProgress;
 }

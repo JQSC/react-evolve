@@ -1,3 +1,11 @@
+function ReactElement(type, key, props) {
+    return {
+        type,
+        key,
+        props
+    }
+}
+
 function createElement(type, config, ...children) {
     //jsx 描述组件内容的一种数据结构
     const props = { ...config };
@@ -7,10 +15,7 @@ function createElement(type, config, ...children) {
         props.children = children
     }
 
-    return {
-        type,
-        props
-    };
+    return ReactElement(type, null, props);
 }
 
 
