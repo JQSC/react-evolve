@@ -21,7 +21,7 @@ function App(props) {
     useEffect(
         () => {
 
-            console.log('state222:', state)
+            console.log('state2:', state)
         },
         [state]
     )

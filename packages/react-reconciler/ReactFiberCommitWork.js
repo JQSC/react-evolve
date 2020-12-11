@@ -336,6 +336,7 @@ export function commitMutationEffects(root, nextEffect) {
     return null;
 }
 
+//处理旧树中effect.destroy
 function commitHookEffectListUnmount(tag, finishedWork) {
     const updateQueue = finishedWork.updateQueue;
     let lastEffect = updateQueue ? updateQueue.lastEffect : null;
@@ -356,6 +357,7 @@ function commitHookEffectListUnmount(tag, finishedWork) {
     }
 }
 
+//处理新树中effect.create
 function commitHookEffectListMount(tag, finishedWork) {
     
     const updateQueue = finishedWork.alternate.updateQueue;
@@ -375,6 +377,7 @@ function commitHookEffectListMount(tag, finishedWork) {
     }
 }
 
+//处理effectList中的函数
 function commitPassiveHookEffects(finishedWork) {
     if ((finishedWork.effectTag & Passive) !== NoEffect) {
         switch (finishedWork.tag) {
