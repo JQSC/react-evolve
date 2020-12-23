@@ -2,9 +2,20 @@ import React from 'react';
 import ReactDOM from 'reactDOM'
 
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useReducer } = React;
 
 function App(props) {
+
+    const [test, dispatch] = useReducer((state, action) => {
+        switch (action.type) {
+            case 'increment':
+                return state++
+            case 'decrement':
+                return state-=1
+            default:
+                throw new Error();
+        }
+    }, 10)
 
     const [show, setShow] = useState(false)
 
@@ -12,19 +23,18 @@ function App(props) {
 
     useEffect(
         () => {
-
-            console.log('state:', state)
+            console.log('useEffect state:', state)
         },
         [state]
     )
 
     useEffect(
         () => {
-
-            console.log('state2:', state)
+            console.log('useEffect test:', test)
         },
-        [state]
+        [test]
     )
+
 
     return (
         <div style="background: salmon">
@@ -32,6 +42,7 @@ function App(props) {
             {/* {show ? <p>111</p> : null} */}
             <button onClick={() => setShow((a) => !a)}>show: {show}</button>
             <button onClick={() => setState(c => c + 1)}>累加: {state}</button>
+            <button onClick={() => dispatch({ type: 'decrement' })}>累减: {test}</button>
             <h2 style="text-align:right">from Chi</h2>
         </div>
     )

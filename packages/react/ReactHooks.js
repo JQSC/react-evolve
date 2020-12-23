@@ -16,3 +16,9 @@ export function useEffect(create, deps) {
     return dispatcher.useEffect(create, deps);
 }
 
+export function useReducer(reducer, initArg, init) {
+    const dispatcher = resolveDispatcher();
+    return dispatcher.useReducer(reducer, initArg, init);
+}
+
+

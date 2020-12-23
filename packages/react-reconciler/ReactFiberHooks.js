@@ -158,69 +158,113 @@ function pushEffect(tag, create, destroy, deps) {
 
 function areHookInputsEqual(nextDeps, prevDeps) {
     if (prevDeps === null) {
-      return false;
+        return false;
     }
     if (nextDeps.length !== prevDeps.length) {
-      console.error('前后deps长度不一致');
+        console.error('前后deps长度不一致');
     }
     for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
-      if (Object.is(nextDeps[i], prevDeps[i])) {
-        continue;
-      }
-      return false;
+        if (Object.is(nextDeps[i], prevDeps[i])) {
+            continue;
+        }
+        return false;
     }
     return true;
-  }
+}
+
+// 传给useState的第二个参数，可以接受 值 或 回调函数 作为参数
+function basicStateReducer(state, action) {
+    return typeof action === 'function' ? action(state) : action;
+}
+
+function mountState(initialState) {
+    return mountReducer(basicStateReducer, initialState)
+}
+
+function mountReducer(reducer, initialArg, init) {
+    const hook = mountWorkInProgressHook();
+    let initialState;
+    if (init !== undefined) {
+        initialState = init(initialArg);
+    } else {
+        initialState = initialArg;
+    }
+    hook.memoizedState = hook.baseState = initialState;
+
+    //queue 用于多次更新同一个hook
+    const queue = (hook.queue = {
+        pending: null,
+        dispatch: null,
+        lastRenderedReducer: reducer,
+        lastRenderedState: initialState,
+    });
+    const dispatch = (queue.dispatch = (dispatchAction.bind(
+        null,
+        currentlyRenderingFiber,
+        queue,
+    )));
+    return [hook.memoizedState, dispatch];
+}
+
+function updateState(initialState) {
+    return updateReducer(basicStateReducer, initialState)
+}
+
+function updateReducer(reducer) {
+    let hook = updateWorkInProgressHook();
+    let queue = hook.queue || {}
+    queue.lastRenderedReducer = reducer;
+
+    let pendingQueue = queue.pending;
+    let baseQueue = hook.baseQueue;
+
+    if (pendingQueue) {
+        if (baseQueue) {
+            // Merge the pending queue and the base queue.
+            const baseFirst = baseQueue.next;
+            const pendingFirst = pendingQueue.next;
+            baseQueue.next = pendingFirst;
+            pendingQueue.next = baseFirst;
+        }
+        hook.baseQueue = baseQueue = pendingQueue;
+        queue.pending = null;
+    }
+
+    if (baseQueue) {
+        // 需要更新state
+        let first = baseQueue.next;
+        let newState = hook.baseState;
+        // let newBaseState;
+        // let newBaseQueueFirst;
+        // let newBaseQueueLast;
+        let update = first;
+        do {
+            // TODO 优先级判断
+            // TODO 更新baseQueue的逻辑
+            const action = update.action;
+            newState = reducer(newState, action);
+            update = update.next;
+        } while (update && update !== first)
+
+        hook.memoizedState = newState;
+        hook.baseState = newState;
+        hook.baseQueue = null;
+        queue.lastRenderedState = newState;
+    }
+    const dispatch = queue.dispatch;
+    return [hook.memoizedState, dispatch];
+}
+
 
 const HooksDispatcherOnUpdate = {
-    useState() {
-        let hook = updateWorkInProgressHook();
-        let queue = hook.queue || {}
-        let pendingQueue = queue.pending;
-        let baseQueue = hook.baseQueue;
-        if (pendingQueue) {
-            if (baseQueue) {
-                // Merge the pending queue and the base queue.
-                const baseFirst = baseQueue.next;
-                const pendingFirst = pendingQueue.next;
-                baseQueue.next = pendingFirst;
-                pendingQueue.next = baseFirst;
-            }
-            hook.baseQueue = baseQueue = pendingQueue;
-            queue.pending = null;
-        }
-
-        if (baseQueue) {
-            // 需要更新state
-            let first = baseQueue.next;
-            let newState = hook.baseState;
-            // let newBaseState;
-            // let newBaseQueueFirst;
-            // let newBaseQueueLast;
-            let update = first;
-            do {
-                // TODO 优先级判断
-                // TODO 更新baseQueue的逻辑
-                const action = update.action;
-                newState = action(newState) //reducer(newState, action);
-                update = update.next;
-            } while (update && update !== first)
-
-            hook.memoizedState = newState;
-            hook.baseState = newState;
-            hook.baseQueue = null;
-            queue.lastRenderedState = newState;
-        }
-        const dispatch = queue.dispatch;
-        //console.log('hook.memoizedState', hook.memoizedState)
-        return [hook.memoizedState, dispatch];
-    },
+    useReducer:updateReducer,
+    useState: updateState,
     useEffect(create, deps) {
         const hook = updateWorkInProgressHook();
         const nextDeps = deps === undefined ? null : deps;
         let destroy = undefined;
         if (currentHook) {
-        
+
             const prevEffect = currentHook.memoizedState;
             destroy = prevEffect.destroy;
             if (nextDeps !== null) {
@@ -245,26 +289,8 @@ const HooksDispatcherOnUpdate = {
 }
 
 const HooksDispatcherOnMount = {
-    useState(initialState) {
-        // 设置该hook的初始值
-        if (typeof initialState === 'function') {
-            initialState = initialState();
-        }
-
-        const hook = mountWorkInProgressHook();
-        hook.memoizedState = hook.baseState = initialState;
-
-        //queue 用于多次更新同一个hook
-        const queue = hook.queue = {
-            pending: null,
-            dispatch: null,
-            lastRenderedState: initialState
-        }
-
-        const dispatch = hook.queue.dispatch = dispatchAction.bind(null, currentlyRenderingFiber, queue);
-
-        return [hook.memoizedState, dispatch]
-    },
+    useReducer: mountReducer,
+    useState: mountState,
     useEffect(create, deps) {
         const hook = mountWorkInProgressHook();
         const nextDeps = deps === undefined ? null : deps;

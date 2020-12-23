@@ -1,4 +1,6 @@
 function ReactElement(type, key, props) {
+console.log('type: ', type,props);
+    
     return {
         type,
         key,
