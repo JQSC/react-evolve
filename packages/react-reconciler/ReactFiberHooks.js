@@ -323,7 +323,9 @@ export function renderWithHooks(workInProgress) {
 
     ReactCurrentDispatcher.current = current && current.memoizedState ? HooksDispatcherOnUpdate : HooksDispatcherOnMount;
 
-    const children = workInProgress.type(workInProgress.props);
+    //console.log('workInProgress.props',workInProgress)
+
+    const children = workInProgress.type(workInProgress.pendingProps);
 
     // 下面几个全局变量会在函数调用过程中指向当前fiber内
     //此时重置他代表这个fiber已经处理完了，所以这些全局变量不能再指向该fiber内部

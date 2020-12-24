@@ -4,12 +4,15 @@ import ReactDOM from 'reactDOM'
 
 const { useState, useEffect, useReducer, useContext, createContext } = React;
 
-const Context = createContext(111)
+const Context = createContext(null)
 
 function Index() {
+
+    const [value, setValue] = useState(1)
+
     return (
-        <Context.Provider value="222">
-            <App name="foo" />
+        <Context.Provider value={value}>
+            <App name="foo" onChange={setValue} />
         </Context.Provider>
     )
 }
@@ -47,19 +50,25 @@ function App(props) {
         [test]
     )
 
+    //绑定的事件还是旧函数 所以即使函数更新也拿不到最新的值
+    const onChange = () => {
+       // console.log('state: ', state);
+        props.onChange(state);
+    }
+    
+
 
     return (
-        <Context.Provider value="222">
-            <div style="background: salmon">
-                <h1>Hello World{state}</h1>
-                {/* {show ? <p>111</p> : null} */}
-                <button onClick={() => setShow((a) => !a)}>show: {show}</button>
-                <button onClick={() => setState(c => c + 1)}>累加: {state}</button>
-                <button onClick={() => dispatch({ type: 'decrement' })}>累减: {test}</button>
-                <div>context value: {contextValue}</div>
-                <h2 style="text-align:right">from Chi</h2>
-            </div>
-        </Context.Provider>
+        <div>
+            <h1>Hello World{state}</h1>
+            {/* {show ? <p>111</p> : null} */}
+            <button onClick={() => setShow((a) => !a)}>show: {show}</button>
+            <button onClick={() => setState(c => c + 1)}>累加: {state}</button>
+            <button onClick={() => dispatch({ type: 'decrement' })}>累减: {test}</button>
+
+            <button onClick={onChange}>modify context：{contextValue}</button>
+
+        </div>
 
     )
 }

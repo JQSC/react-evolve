@@ -28,16 +28,33 @@ function finalizeInitialChildren(dom, prevProps, nextProps) {
 
     //console.log('nextProps', nextProps)
     // rmove all old props
-    // Object.keys(prevProps)
-    //     .filter(isProperty)
-    //     .filter(isGone(prevProps, nextProps))
-    //     .forEach(name => {
-    //         dom[name] = ""
-    //     })
+    if (prevProps) {
+        Object.keys(prevProps)
+            .filter(isProperty)
+            .filter(isGone(prevProps, nextProps))
+            .forEach(name => {
+                dom[name] = ""
+            })
+        Object.keys(prevProps)
+            .filter(isEvent)
+            .filter(isNew(prevProps, nextProps))
+            .forEach(name => {
+                const eventType = name
+                    .toLowerCase()
+                    .substring(2)
+
+                dom.removeEventListener(
+                    eventType,
+                    prevProps[name]
+                )
+            })
+    }
+
+
     // Add event listeners
     Object.keys(nextProps)
         .filter(isEvent)
-        .filter(isNew(prevProps, nextProps))
+        // .filter(isNew(prevProps, nextProps))
         .forEach(name => {
             const eventType = name
                 .toLowerCase()
@@ -97,8 +114,10 @@ function updateHostComponent(current, workInProgress, type, newProps) {
     if (updatePayload) {
         markUpdate(workInProgress);
     }
-}
 
+
+    //finalizeInitialChildren()
+}
 
 
 
@@ -112,6 +131,9 @@ export function completeWork(current, workInProgress) {
             if (current && workInProgress.stateNode) {
                 // 非首次渲染，已经存在对应current 和 stateNode 更新属性
                 updateHostComponent(current, workInProgress, type, newProps);
+                //console.log('update',workInProgress.stateNode, current.pendingProps, newProps)
+                //更新props
+                finalizeInitialChildren(workInProgress.stateNode, current.pendingProps, newProps);
                 return null;
             }
 
