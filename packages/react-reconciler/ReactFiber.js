@@ -1,5 +1,6 @@
-import { IndeterminateComponent, HostText, HostComponent } from 'shared/ReactWorkTags';
-import {NoEffect} from 'shared/ReactSideEffectTags';
+import { IndeterminateComponent, HostText, HostComponent, ContextProvider } from 'shared/ReactWorkTags';
+import { NoEffect } from 'shared/ReactSideEffectTags';
+import { REACT_PROVIDER_TYPE } from 'shared/ReactSymbols';
 
 export function FiberNode(tag, pendingProps, key) {
     // 1 ClassComponent
@@ -83,6 +84,15 @@ export function createFiberFromElement(element) {
     // FunctionComponent ClassComponent 类型都是 function
     if (typeof type === 'string') {
         fiberTag = HostComponent;
+    } else {
+        if (typeof type === 'object' && type !== null) {
+            switch (type.$$typeof) {
+                //context
+                case REACT_PROVIDER_TYPE:
+                    fiberTag = ContextProvider;
+                    break;
+            }
+        }
     }
 
     const fiber = new FiberNode(fiberTag, pendingProps, null);

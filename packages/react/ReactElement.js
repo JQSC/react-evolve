@@ -1,7 +1,8 @@
+import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
+
 function ReactElement(type, key, props) {
-console.log('type: ', type,props);
-    
     return {
+        $$typeof: REACT_ELEMENT_TYPE,
         type,
         key,
         props

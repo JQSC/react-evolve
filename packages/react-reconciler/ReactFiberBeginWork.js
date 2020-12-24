@@ -1,6 +1,6 @@
 
 import { renderWithHooks } from './ReactFiberHooks'
-import { HostRoot, IndeterminateComponent, HostComponent, HostText } from 'shared/ReactWorkTags';
+import { HostRoot, IndeterminateComponent, HostComponent, HostText ,ContextProvider} from 'shared/ReactWorkTags';
 import { reconcileChildFibers, mountChildFibers, cloneChildFibers } from './ReactChildFiber'
 import { processUpdateQueue } from './ReactUpdateQueue'
 
@@ -32,6 +32,38 @@ function updateHostRoot(current, workInProgress) {
     reconcileChildren(current, workInProgress, nextChildren);
     return workInProgress.child
 }
+
+function updateContextProvider(current$$1, workInProgress) {
+    var providerType = workInProgress.type;
+    var context = providerType._context;
+    var newProps = workInProgress.pendingProps;
+    var oldProps = workInProgress.memoizedProps;
+    var newValue = newProps.value;
+
+    // pushProvider(workInProgress, newValue);
+    context._currentValue = newValue;
+
+    if (oldProps !== null) {
+    //   var oldValue = oldProps.value;
+    //   var changedBits = calculateChangedBits(context, newValue, oldValue);
+
+    //   if (changedBits === 0) {
+    //     // No change. Bailout early if children are the same.
+    //     if (oldProps.children === newProps.children && !hasContextChanged()) {
+    //       return bailoutOnAlreadyFinishedWork(current$$1, workInProgress);
+    //     }
+    //   } else {
+    //     // The context value changed. Search for matching consumers and schedule
+    //     // them to update.
+    //     propagateContextChange(workInProgress, context, changedBits);
+    //   }
+    }
+
+    var newChildren = newProps.children;
+    reconcileChildren(current$$1, workInProgress, newChildren);
+    return workInProgress.child;
+  }
+
 
 function updateFunctionComponent(current, workInProgress, Component) {
     // //同一个组件中多次调用hook
@@ -79,6 +111,8 @@ function beginWork(current, workInProgress) {
             return updateHostComponent(current, workInProgress);
         case HostText:
             return updateHostText(current, workInProgress);
+        case ContextProvider:
+            return updateContextProvider(current, workInProgress);
         default:
             break;
 

@@ -6,6 +6,11 @@ function resolveDispatcher() {
     return dispatcher;
 }
 
+export function useContext(Context) {
+    const dispatcher = resolveDispatcher();
+    return dispatcher.useContext(Context);
+}
+
 export function useState(initial) {
     const dispatcher = resolveDispatcher();
     return dispatcher.useState(initial);

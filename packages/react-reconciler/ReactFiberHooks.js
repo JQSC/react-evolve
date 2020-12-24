@@ -2,6 +2,8 @@ import * as DOMRenderer from 'reactReconciler';
 import performSyncWorkOnRoot from 'reactReconciler/ReactFiberWorkLoop'
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 import { FiberNode } from 'reactReconciler/ReactFiber';
+import { readContext } from 'reactReconciler/ReactFiberNewContext'
+
 import {
     NoEffect as NoHookEffect,
     HasEffect as HookHasEffect,
@@ -257,7 +259,8 @@ function updateReducer(reducer) {
 
 
 const HooksDispatcherOnUpdate = {
-    useReducer:updateReducer,
+    useContext: readContext,
+    useReducer: updateReducer,
     useState: updateState,
     useEffect(create, deps) {
         const hook = updateWorkInProgressHook();
@@ -289,6 +292,7 @@ const HooksDispatcherOnUpdate = {
 }
 
 const HooksDispatcherOnMount = {
+    useContext: readContext,
     useReducer: mountReducer,
     useState: mountState,
     useEffect(create, deps) {

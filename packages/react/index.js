@@ -1,6 +1,6 @@
 import createElement from './ReactElement'
 import createContext from './ReactContext'
-import { useState, useEffect ,useReducer} from './ReactHooks'
+import { useState, useEffect, useReducer, useContext } from './ReactHooks'
 import ReactCurrentDispatcher from './ReactCurrentDispatcher'
 
 const React = {
@@ -11,7 +11,8 @@ const React = {
     },
     useState,
     useReducer,
-    useEffect
+    useEffect,
+    useContext
 }
 
 export default React
