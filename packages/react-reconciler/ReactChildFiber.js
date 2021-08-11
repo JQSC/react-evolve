@@ -324,12 +324,12 @@ function ChildReconciler(shouldTrackSideEffects) {
         }
 
 
-        //第二次遍历 情况1 标记删除所有剩下的oldFiber
+        //第二次遍历 情况1 newChildren遍历完，oldFiber没遍历完 标记删除所有剩下的oldFiber
         if (newIdx === newChildren.length) {
             deleteRemainingChildren(returnFiber, oldFiber);
             return resultingFirstChild;
         }
-        //情况二 标记所有剩下的newChildren为新增
+        //情况二 newChildren没遍历完，oldFiber遍历完，标记所有剩下的newChildren为新增
         if (!oldFiber) {
             for (; newIdx < newChildren.length; newIdx++) {
                 const newFiber = createChild(returnFiber, newChildren[newIdx]);
@@ -346,7 +346,7 @@ function ChildReconciler(shouldTrackSideEffects) {
             }
             return resultingFirstChild;
         }
-        //情况三 发生了位置变化
+        //情况三 newChildren与oldFiber都没遍历完，意味着发生了位置变化
         // 将所有未遍历的oldFiber存入map，这样在接下来的遍历中能O(1)的复杂度就能通过key找到对应的oldFiber
         const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
         for (; newIdx < newChildren.length; newIdx++) {
