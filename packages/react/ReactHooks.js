@@ -26,4 +26,9 @@ export function useReducer(reducer, initArg, init) {
     return dispatcher.useReducer(reducer, initArg, init);
 }
 
+export function useRef(initial) {
+    const dispatcher = resolveDispatcher();
+    return dispatcher.useRef(initial);
+}
+
 

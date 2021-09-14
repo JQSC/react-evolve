@@ -257,6 +257,18 @@ function updateReducer(reducer) {
     return [hook.memoizedState, dispatch];
 }
 
+function mountRef(initialValue) {
+    const hook = mountWorkInProgressHook();
+    const ref = { current: initialValue };
+    hook.memoizedState = ref;
+    return ref;
+}
+
+function updateRef(initialValue) {
+    const hook = updateWorkInProgressHook();
+    return hook.memoizedState;
+}
+
 
 const HooksDispatcherOnUpdate = {
     useContext: readContext,
@@ -288,7 +300,8 @@ const HooksDispatcherOnUpdate = {
             destroy,
             nextDeps
         );
-    }
+    },
+    useRef: mountRef
 }
 
 const HooksDispatcherOnMount = {
@@ -308,7 +321,8 @@ const HooksDispatcherOnMount = {
             undefined,
             nextDeps
         );
-    }
+    },
+    useRef: updateRef
 }
 
 
